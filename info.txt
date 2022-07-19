@@ -1,0 +1,7 @@
+git clone https://github.com/hashicorp/learn-terraform-lambda-api-gateway.git
+cd learn-terraform-lambda-api-gateway
+terraform init
+terraform apply
+#terraform init -force-copy && terraform apply -auto-approve
+
+
