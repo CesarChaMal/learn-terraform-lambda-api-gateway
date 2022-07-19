@@ -3,5 +3,7 @@ cd learn-terraform-lambda-api-gateway
 terraform init
 terraform apply
 #terraform init -force-copy && terraform apply -auto-approve
+terraform destroy
+#terraform destroy -auto-approve
 
 
