@@ -4,5 +4,7 @@ variable "aws_region" {
   description = "AWS region for all resources."
 
   type    = string
-  default = "us-east-1"
+  default = "eu-central-1"
 }
+
+data "aws_canonical_user_id" "current" {}

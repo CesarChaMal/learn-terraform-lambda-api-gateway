@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0.0"
+      version = "~> 4.22.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -28,30 +28,58 @@ resource "random_pet" "lambda_bucket_name" {
 
 resource "aws_s3_bucket" "lambda_bucket" {
   bucket = random_pet.lambda_bucket_name.id
-
-  acl           = "private"
+  #acl = "private"
   force_destroy = true
+}
+
+resource "aws_s3_bucket_acl" "lambda_bucket" {
+  bucket = aws_s3_bucket.lambda_bucket.id
+  access_control_policy {
+    grant {
+      grantee {
+        id   = data.aws_canonical_user_id.current.id
+        type = "CanonicalUser"
+      }
+      permission = "READ"
+    }
+
+    grant {
+      grantee {
+        id   = data.aws_canonical_user_id.current.id
+        type = "CanonicalUser"
+      }
+      permission = "WRITE"
+    }
+
+    grant {
+      grantee {
+        type = "Group"
+        uri  = "http://acs.amazonaws.com/groups/s3/LogDelivery"
+      }
+      permission = "FULL_CONTROL"
+    }
+
+    owner {
+      id = data.aws_canonical_user_id.current.id
+    }
+  }
 }
 
 data "archive_file" "lambda_hello_world" {
   type = "zip"
-
   source_dir  = "${path.module}/hello-world"
   output_path = "${path.module}/hello-world.zip"
 }
 
 resource "aws_s3_object" "lambda_hello_world" {
   bucket = aws_s3_bucket.lambda_bucket.id
-
   key    = "hello-world.zip"
   source = data.archive_file.lambda_hello_world.output_path
-
   etag = filemd5(data.archive_file.lambda_hello_world.output_path)
 }
 
 resource "aws_lambda_function" "hello_world" {
   function_name = "HelloWorld"
-
   s3_bucket = aws_s3_bucket.lambda_bucket.id
   s3_key    = aws_s3_object.lambda_hello_world.key
 
